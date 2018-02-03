@@ -161,6 +161,9 @@ void print_help()
   cout << "  -s  set the random seed.           default: 11"            << '\n';
   cout << "  -v  verbose output"                                        << '\n';
   cout << "  -V  print version information and exit"                    << '\n';
+  cout << "  -w  write spline coefs"                                    << '\n';
+  cout << "  -R  read spline coefs"                                     << '\n';
+  cout << "  -m  mmap spline coefs"                                     << '\n';
   //clang-format on
 
   exit(1); // print help and exit
@@ -199,10 +202,14 @@ int main(int argc, char **argv)
 
   bool verbose = false;
 
+  bool write_spline_coefs = false;
+  bool read_spline_coefs = false;
+  bool map_spline_coefs = false;
+
   int opt;
   while(optind < argc)
   {
-    if ((opt = getopt(argc, argv, "hvVa:c:g:n:N:r:s:")) != -1)
+    if ((opt = getopt(argc, argv, "hvVa:c:g:n:N:r:s:wRm")) != -1)
     {
       switch (opt)
       {
@@ -231,6 +238,9 @@ int main(int argc, char **argv)
         print_version(true);
         return 1;
         break;
+      case 'w': write_spline_coefs = true; break;
+      case 'R': read_spline_coefs = true; break;
+      case 'm': map_spline_coefs = true; break;
       default:
         print_help();
       }
@@ -296,7 +306,19 @@ int main(int argc, char **argv)
       cout << "\nSPO coefficients size = " << SPO_coeff_size;
       cout << " bytes (" << SPO_coeff_size_MB << " MB)" << endl;
     }
-    spo_main.set(nx, ny, nz, norb, nTiles);
+    spo_main.set(nx, ny, nz, norb, nTiles, true, !map_spline_coefs);
+
+    std::string spline_fname  = std::string("spline_coefs_") + std::to_string(na) + "_" + std::to_string(nb) 
+                         + "_" + std::to_string(nc) + ".dat";
+    if (write_spline_coefs) {
+      spo_main.write_coefs(spline_fname);
+    }
+    if (read_spline_coefs) {
+      spo_main.read_coefs(spline_fname);
+    }
+    if (map_spline_coefs) {
+      spo_main.mmap_coefs(spline_fname);
+    }
     spo_main.Lattice.set(lattice_b);
   }
 

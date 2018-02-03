@@ -26,6 +26,9 @@
 #include <Utilities/SIMD/allocator.hpp>
 #include "Numerics/OhmmsPETE/OhmmsArray.h"
 #include <iostream>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 namespace qmcplusplus
 {
@@ -135,7 +138,7 @@ struct einspline_spo
 
   // fix for general num_splines
   void set(int nx, int ny, int nz, int num_splines, int nblocks,
-           bool init_random = true)
+           bool init_random = true, bool alloc_coefs=true)
   {
     nSplines         = num_splines;
     nBlocks          = nblocks;
@@ -155,13 +158,59 @@ struct einspline_spo
       myrandom.generate_uniform(data.data(), data.size());
       for (int i = 0; i < nBlocks; ++i)
       {
-        einsplines[i] = myAllocator.createMultiBspline(T(0), start, end, ng, PERIODIC, nSplinesPerBlock);
-        if (init_random)
+        einsplines[i] = myAllocator.createMultiBspline(T(0), start, end, ng, PERIODIC, nSplinesPerBlock, alloc_coefs);
+        if (init_random && alloc_coefs)
           for (int j = 0; j < nSplinesPerBlock; ++j)
             myAllocator.set(data.data(), einsplines[i], j);
       }
     }
     resize();
+  }
+
+  void write_coefs(const std::string &fname)
+  {
+    FILE *f = fopen(fname.c_str(), "w");
+    if (!f) {
+      std::cout <<  "Open failed for "  << fname << std::endl;
+      return;
+    }
+    size_t bytes_written = fwrite(einsplines[0]->coefs, 1, einsplines[0]->coefs_size*sizeof(double), f);
+    if (bytes_written != einsplines[0]->coefs_size * sizeof(double)) {
+      std::cout << " Write failed, bytes written = " << bytes_written << std::endl;
+    }
+
+    fclose(f);
+  }
+
+  void read_coefs(const std::string &fname)
+  {
+    FILE *f = fopen(fname.c_str(), "r");
+    if (!f) {
+      std::cout <<  "Open failed for "  << fname << std::endl;
+      return;
+    }
+    size_t bytes_written = fread(einsplines[0]->coefs, 1, einsplines[0]->coefs_size*sizeof(double), f);
+    if (bytes_written != einsplines[0]->coefs_size * sizeof(double)) {
+      std::cout << " Read failed, bytes written = " << bytes_written << std::endl;
+    }
+
+    fclose(f);
+  }
+
+  void mmap_coefs(const std::string &fname)
+  {
+    int fd = open(fname.c_str(), O_RDONLY);
+    if (fd < 0) {
+      std::cout <<  "Open failed for "  << fname << std::endl;
+      return;
+    }
+    void *ptr_base = mmap(NULL, einsplines[0]->coefs_size*sizeof(double), PROT_READ, MAP_PRIVATE, fd, 0);
+    if (ptr_base == MAP_FAILED) {
+      perror("map failed");
+      return;
+    }
+    Owner = false;
+    einsplines[0]->coefs = (double *)ptr_base;
   }
 
   /** evaluate psi */
