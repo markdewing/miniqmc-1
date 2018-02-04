@@ -72,6 +72,11 @@
 
   The size of the coefficient data set can be large - on the order of gigabytes.
 
+  The data structure repsenting the splines is in Numerics/Einspline/multi_bspline_structs.h, multi_UBspline_3d_s (and _d).  The large coefficent array is in `coefs`.
+  The coefficients are set up in QMCWaveFunctions/einspline_spo.hpp, in `set`.  Currently the coefficients are randomly generated.
+
+  There are 3 evaluation routines in Numerics/Spline2/MultiBspline.hpp, which vary in the number and type of derivates computed.
+
  */
 
  /*!
@@ -112,6 +117,7 @@
 #include <Input/Input.hpp>
 #include <QMCWaveFunctions/einspline_spo.hpp>
 #include <QMCWaveFunctions/WaveFunction.h>
+#include <tinyxml/tinyxml2.h>
 #include <getopt.h>
 
 using namespace std;
@@ -518,6 +524,15 @@ int main(int argc, char **argv)
 
     TimerManager.print();
   }
+
+  tinyxml2::XMLDocument doc;
+  tinyxml2::XMLNode *resources = doc.NewElement("resources");
+  tinyxml2::XMLNode *hardware = doc.NewElement("hardware");
+  resources->InsertEndChild(hardware);
+  doc.InsertEndChild(resources);
+  tinyxml2::XMLNode *timing = TimerManager.output_timing(doc);
+  resources->InsertEndChild(timing);
+  doc.SaveFile("info.xml");
 
   return 0;
 }
