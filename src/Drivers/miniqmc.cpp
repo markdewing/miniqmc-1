@@ -117,7 +117,7 @@
 #include <Input/Input.hpp>
 #include <QMCWaveFunctions/einspline_spo.hpp>
 #include <QMCWaveFunctions/WaveFunction.h>
-#include <tinyxml/tinyxml2.h>
+#include <Utilities/XMLWriter.h>
 #include <getopt.h>
 
 using namespace std;
@@ -248,6 +248,8 @@ int main(int argc, char **argv)
     }
   }
 
+  int number_of_electrons = 0;
+
   Random.init(0, 1, iseed);
   Tensor<int, 3> tmat(na, 0, 0, 0, nb, 0, 0, 0, nc);
 
@@ -285,6 +287,8 @@ int main(int argc, char **argv)
     const int norb        = nels / 2;
     tileSize              = (tileSize > 0) ? tileSize : norb;
     nTiles                = norb / tileSize;
+
+    number_of_electrons = nels;
 
     const unsigned int SPO_coeff_size =
         (nx + 3) * (ny + 3) * (nz + 3) * norb * sizeof(RealType);
@@ -525,14 +529,24 @@ int main(int argc, char **argv)
     TimerManager.print();
   }
 
-  tinyxml2::XMLDocument doc;
-  tinyxml2::XMLNode *resources = doc.NewElement("resources");
-  tinyxml2::XMLNode *hardware = doc.NewElement("hardware");
+  XMLDocument doc;
+  XMLNode *resources = doc.NewElement("resources");
+  XMLNode *hardware = doc.NewElement("hardware");
   resources->InsertEndChild(hardware);
   doc.InsertEndChild(resources);
-  tinyxml2::XMLNode *timing = TimerManager.output_timing(doc);
+  XMLNode *timing = TimerManager.output_timing(doc);
   resources->InsertEndChild(timing);
-  doc.SaveFile("info.xml");
+
+  XMLNode *particle_info = doc.NewElement("particles");
+  resources->InsertEndChild(particle_info);
+  XMLNode *electron_info = doc.NewElement("particle");
+  electron_info->InsertEndChild(MakeTextElement(doc,"name","e"));
+  electron_info->InsertEndChild(MakeTextElement(doc,"size",std::to_string(number_of_electrons)));
+  particle_info->InsertEndChild(electron_info);
+  
+
+  std::string info_name = "info_" + std::to_string(na) + "_" + std::to_string(nb) + "_" + std::to_string(nc) + ".xml";
+  doc.SaveFile(info_name.c_str());
 
   return 0;
 }

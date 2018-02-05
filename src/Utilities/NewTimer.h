@@ -116,7 +116,7 @@
 #define QMCPLUSPLUS_NEW_TIMER_H
 
 #include <Utilities/Clock.h>
-#include <tinyxml/tinyxml2.h>
+#include <Utilities/XMLWriter.h>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -286,7 +286,7 @@ public:
   void print_flat();
   void print_stack();
 
-  tinyxml2::XMLNode* output_timing(tinyxml2::XMLDocument &doc);
+  XMLNode* output_timing(XMLDocument &doc);
 
   typedef std::map<std::string, int> nameList_t;
   typedef std::vector<double> timeList_t;
@@ -551,6 +551,7 @@ struct TimerComparator
     return a->get_name() < b->get_name();
   }
 };
+
 }
 
 #endif

@@ -330,21 +330,6 @@ void TimerManagerClass::print_stack()
 #endif
 }
 
-using tinyxml2::XMLNode;
-using tinyxml2::XMLDocument;
-using tinyxml2::XMLElement;
-using tinyxml2::XMLText;
-
-XMLNode *
-MakeTextElement(XMLDocument &doc, const std::string &name, const std::string &value)
-{
-  XMLNode* name_node = doc.NewElement(name.c_str());
-  XMLText* value_node = doc.NewText("");
-  value_node->SetValue(value.c_str());
-  name_node->InsertEndChild(value_node);
-  return name_node;
-}
-
 XMLNode*
 TimerManagerClass::output_timing(XMLDocument &doc)
 {
