@@ -545,6 +545,14 @@ int main(int argc, char **argv)
   particle_info->InsertEndChild(electron_info);
   
 
+  XMLNode *run_info = doc.NewElement("run");
+  XMLNode *driver_info = doc.NewElement("driver");
+  driver_info->InsertEndChild(MakeTextElement(doc,"name","miniqmc"));
+  driver_info->InsertEndChild(MakeTextElement(doc,"steps",std::to_string(nsteps)));
+  driver_info->InsertEndChild(MakeTextElement(doc,"substeps",std::to_string(nsubsteps)));
+  run_info->InsertEndChild(driver_info);
+  resources->InsertEndChild(run_info);
+
   std::string info_name = "info_" + std::to_string(na) + "_" + std::to_string(nb) + "_" + std::to_string(nc) + ".xml";
   doc.SaveFile(info_name.c_str());
 
