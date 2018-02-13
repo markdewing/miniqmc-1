@@ -31,29 +31,29 @@
 
 #if defined(__INTEL_COMPILER)
 
-inline void *einspline_alloc(size_t size, size_t alignment)
+void *einspline_alloc(size_t size, size_t alignment)
 {
   return _mm_malloc(size, alignment);
 }
 
-inline void einspline_free(void *ptr) { _mm_free(ptr); }
+void einspline_free(void *ptr) { _mm_free(ptr); }
 
 #elif defined(HAVE_POSIX_MEMALIGN)
 
 int posix_memalign(void **memptr, size_t alignment, size_t size);
 
-inline void *einspline_alloc(size_t size, size_t alignment)
+void *einspline_alloc(size_t size, size_t alignment)
 {
   void *ptr;
-  posix_memalign(&ptr, alignment, size);
+  int ret = posix_memalign(&ptr, alignment, size);
   return ptr;
 }
 
-inline void einspline_free(void *ptr) { free(ptr); }
+void einspline_free(void *ptr) { free(ptr); }
 
 #else
 
-inline void *einspline_alloc(size_t size, size_t alignment)
+void *einspline_alloc(size_t size, size_t alignment)
 {
   size += (alignment - 1) + sizeof(void *);
   void *ptr = malloc(size);
@@ -70,7 +70,7 @@ inline void *einspline_alloc(size_t size, size_t alignment)
   }
 }
 
-inline void einspline_free(void *aligned)
+void einspline_free(void *aligned)
 {
   void *ptr = *((void **)aligned - 1);
   free(ptr);
@@ -83,7 +83,7 @@ einspline_create_multi_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
                                      int num_splines)
 {
   // Create new spline
-  multi_UBspline_3d_s *restrict spline = malloc(sizeof(multi_UBspline_3d_s));
+  multi_UBspline_3d_s *restrict spline = (multi_UBspline_3d_s *)malloc(sizeof(multi_UBspline_3d_s));
   if (!spline)
   {
     fprintf(stderr,
@@ -170,10 +170,10 @@ einspline_create_multi_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
 multi_UBspline_3d_d *
 einspline_create_multi_UBspline_3d_d(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
                                      BCtype_d xBC, BCtype_d yBC, BCtype_d zBC,
-                                     int num_splines, int alloc_coefs)
+                                     int num_splines, bool alloc_coefs)
 {
   // Create new spline
-  multi_UBspline_3d_d *restrict spline = malloc(sizeof(multi_UBspline_3d_d));
+  multi_UBspline_3d_d *restrict spline = (multi_UBspline_3d_d *)malloc(sizeof(multi_UBspline_3d_d));
 
   if (!spline)
   {
@@ -248,7 +248,7 @@ UBspline_3d_d *einspline_create_UBspline_3d_d(Ugrid x_grid, Ugrid y_grid,
                                               double *data)
 {
   // Create new spline
-  UBspline_3d_d *restrict spline = malloc(sizeof(UBspline_3d_d));
+  UBspline_3d_d *restrict spline = (UBspline_3d_d *)malloc(sizeof(UBspline_3d_d));
   spline->spcode                 = U3D;
   spline->tcode                  = DOUBLE_REAL;
   spline->xBC                    = xBC;
@@ -337,7 +337,7 @@ UBspline_3d_s *einspline_create_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid,
                                               float *data)
 {
   // Create new spline
-  UBspline_3d_s *spline = malloc(sizeof(UBspline_3d_s));
+  UBspline_3d_s *spline = (UBspline_3d_s *)malloc(sizeof(UBspline_3d_s));
   spline->spcode        = U3D;
   spline->tcode         = SINGLE_REAL;
   spline->xBC           = xBC;

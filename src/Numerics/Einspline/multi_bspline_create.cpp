@@ -132,7 +132,7 @@ void set_multi_UBspline_3d_s_d(multi_UBspline_3d_s *spline, int num,
   else
     Nz = Mz + 2;
 
-  double *spline_tmp = malloc(sizeof(double) * Nx * Ny * Nz);
+  double *spline_tmp = (double *)malloc(sizeof(double) * Nx * Ny * Nz);
 
 // First, solve in the X-direction
 #pragma omp parallel for

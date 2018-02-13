@@ -26,16 +26,8 @@
 #ifndef EINSPLINE_ALIGNED_ALLOC_H
 #define EINSPLINE_ALIGNED_ALLOC_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void *einspline_alloc(size_t size, size_t alignment);
 
 void einspline_free(void *ptr);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
