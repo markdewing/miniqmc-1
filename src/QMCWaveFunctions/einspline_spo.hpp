@@ -29,6 +29,9 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
 
 namespace qmcplusplus
 {
@@ -196,6 +199,14 @@ struct einspline_spo
 
     fclose(f);
   }
+
+  void broadcast_coefs()
+  {
+#ifdef HAVE_MPI
+    MPI_Bcast(einsplines[0]->coefs, einsplines[0]->coefs_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+#endif
+  }
+
 
   void mmap_coefs(const std::string &fname)
   {

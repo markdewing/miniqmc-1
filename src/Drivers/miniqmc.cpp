@@ -113,6 +113,9 @@
 #include <QMCWaveFunctions/einspline_spo.hpp>
 #include <QMCWaveFunctions/WaveFunction.h>
 #include <getopt.h>
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
 
 using namespace std;
 using namespace qmcplusplus;
@@ -181,8 +184,15 @@ int main(int argc, char **argv)
 
   // use the global generator
 
-  // bool ionode=(mycomm->rank() == 0);
-  bool ionode = 1;
+#ifdef HAVE_MPI
+  MPI_Init(&argc, &argv);
+#endif
+
+  int rank = 0;
+#ifdef HAVE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  bool ionode = (rank == 0);
   int na      = 1;
   int nb      = 1;
   int nc      = 1;
@@ -247,8 +257,10 @@ int main(int argc, char **argv)
     }
     else // disallow non-option arguments
     {
-      cerr << "Non-option arguments not allowed" << endl;
-      print_help();
+      if (ionode) {
+        cerr << "Non-option arguments not allowed" << endl;
+        print_help();
+      }
     }
   }
 
@@ -259,14 +271,16 @@ int main(int argc, char **argv)
   TimerList_t Timers;
   setup_timers(Timers, MiniQMCTimerNames, timer_level_coarse);
 
-  print_version(verbose);
+  if (ionode) {
+    print_version(verbose);
+  }
 
   if (verbose) {
     outputManager.setVerbosity(Verbosity::HIGH);
   }
 
   // turn off output
-  if (!verbose || omp_get_max_threads() > 1)
+  if (!verbose || omp_get_max_threads() > 1 || !ionode)
   {
     outputManager.shutOff();
   }
@@ -311,10 +325,15 @@ int main(int argc, char **argv)
     std::string spline_fname  = std::string("spline_coefs_") + std::to_string(na) + "_" + std::to_string(nb) 
                          + "_" + std::to_string(nc) + ".dat";
     if (write_spline_coefs) {
-      spo_main.write_coefs(spline_fname);
+      if (ionode) {
+        spo_main.write_coefs(spline_fname);
+      }
     }
     if (read_spline_coefs) {
-      spo_main.read_coefs(spline_fname);
+      if (ionode) {
+        spo_main.read_coefs(spline_fname);
+      }
+      spo_main.broadcast_coefs();
     }
     if (map_spline_coefs) {
       spo_main.mmap_coefs(spline_fname);
@@ -540,6 +559,10 @@ int main(int argc, char **argv)
 
     TimerManager.print();
   }
+
+#ifdef HAVE_MPI
+  MPI_Finalize();
+#endif
 
   return 0;
 }
