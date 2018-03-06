@@ -26,6 +26,9 @@
 #include <QMCWaveFunctions/einspline_spo.hpp>
 #include <Utilities/qmcpack_version.h>
 #include <getopt.h>
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
 
 using namespace std;
 using namespace qmcplusplus;
@@ -61,8 +64,15 @@ int main(int argc, char **argv)
 
   // use the global generator
 
-  // bool ionode=(mycomm->rank() == 0);
-  bool ionode = 1;
+#ifdef HAVE_MPI
+  MPI_Init(&argc, &argv);
+#endif
+
+  int rank = 0;
+#ifdef HAVE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  bool ionode = (rank== 0);
   int na      = 1;
   int nb      = 1;
   int nc      = 1;
@@ -117,7 +127,9 @@ int main(int argc, char **argv)
     }
   }
 
-  print_version(verbose);
+  if (ionode) {
+    print_version(verbose);
+  }
 
   if (verbose) {
     outputManager.setVerbosity(Verbosity::HIGH);
@@ -346,7 +358,15 @@ int main(int argc, char **argv)
          << std::endl;
     fail = true;
   }
-  if (!fail) cout << "All checks passed for spo" << std::endl;
+#ifdef HAVE_MPI
+  bool local_fail = fail;
+  MPI_Reduce(&local_fail, &fail, 1, MPI_C_BOOL, MPI_LOR, 0, MPI_COMM_WORLD);
+#endif
+  if (!fail && ionode) cout << "All checks passed for spo" << std::endl;
+
+#ifdef HAVE_MPI
+  MPI_Finalize();
+#endif
 
   return 0;
 }
