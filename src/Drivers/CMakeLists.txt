@@ -5,13 +5,15 @@ SET(ESTEST check_wfc check_spo check_determinant)
 
 FOREACH(p ${ESTEST})
   ADD_EXECUTABLE( ${p}  ${p}.cpp)
-  TARGET_LINK_LIBRARIES(${p} qmcbase qmcutil ${QMC_UTIL_LIBS} ${MPI_LIBRARY})
+  TARGET_LINK_LIBRARIES(${p} qmcbase qmcutil ${GA_LIBRARIES} ${QMC_UTIL_LIBS} ${MPI_LIBRARY})
 ENDFOREACH(p ${ESTEST})
 
 ADD_LIBRARY(miniwfs ../QMCWaveFunctions/WaveFunction.cpp)
 
 ADD_EXECUTABLE(miniqmc miniqmc.cpp)
-TARGET_LINK_LIBRARIES(miniqmc miniwfs qmcbase qmcutil ${QMC_UTIL_LIBS} ${MPI_LIBRARY})
+TARGET_INCLUDE_DIRECTORIES(miniqmc PRIVATE ${GA_DIR}/include)
+TARGET_LINK_LIBRARIES(miniqmc miniwfs qmcbase qmcutil ${GA_LIBRARIES} ${QMC_UTIL_LIBS} ${MPI_LIBRARY})
+
 
 #ADD_EXECUTABLE(diff_wfs diff_wfs.cpp)
 #TARGET_LINK_LIBRARIES(diff_wfs miniwfs qmcbase qmcutil ${QMC_UTIL_LIBS} ${MPI_LIBRARY})

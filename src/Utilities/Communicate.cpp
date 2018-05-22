@@ -14,15 +14,23 @@
  * @brief Defintion of Communicate and CommunicateMPI classes.
  */
 #include <Utilities/Communicate.h>
+#include <Utilities/Configuration.h>
+#include <Utilities/SplineCoefs.hpp>
 #include <iostream>
 
 Communicate::Communicate(int argc, char **argv)
 {
 #ifdef HAVE_MPI
+#ifdef USE_GLOBAL_ARRAYS
+  m_world = qmcpack::SplineCoefs<qmcplusplus::QMCTraits::RealType>::init(argc, argv);
+  MPI_Comm_rank(m_world, &m_rank);
+  MPI_Comm_size(m_world, &m_size);
+#else
   MPI_Init(&argc, &argv);
   m_world = MPI_COMM_WORLD;
   MPI_Comm_rank(m_world, &m_rank);
   MPI_Comm_size(m_world, &m_size);
+#endif
 #else
   m_rank = 0;
   m_size = 1;
@@ -32,7 +40,11 @@ Communicate::Communicate(int argc, char **argv)
 Communicate::~Communicate()
 {
 #ifdef HAVE_MPI
+#ifdef USE_GLOBAL_ARRAYS
+  qmcpack::SplineCoefs<qmcplusplus::QMCTraits::RealType>::finalize();
+#else
   MPI_Finalize();
+#endif
 #endif
 }
 
