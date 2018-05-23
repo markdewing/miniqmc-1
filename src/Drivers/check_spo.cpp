@@ -179,9 +179,11 @@ int main(int argc, char **argv)
     app_summary() << "\nSPO coefficients size = " << SPO_coeff_size
                   << " bytes (" << SPO_coeff_size_MB << " MB)" << endl;
 
-    spo_main.set(nx, ny, nz, norb, nTiles);
+    bool set_local_coefs = false;
+    spo_main.set(nx, ny, nz, norb, nTiles, set_local_coefs);
     spo_main.Lattice.set(lattice_b);
-    spo_ref_main.set(nx, ny, nz, norb, nTiles);
+    set_local_coefs = true;
+    spo_ref_main.set(nx, ny, nz, norb, nTiles, set_local_coefs);
     spo_ref_main.Lattice.set(lattice_b);
   }
 
@@ -335,6 +337,7 @@ int main(int argc, char **argv)
 
   } // end of omp parallel
 
+  global_coefs->set();
   outputManager.resume();
 
   evalV_v_err /= nspheremoves;

@@ -30,6 +30,7 @@ class Allocator
   /// Setting the allocation policy: default is using aligned allocator
   int Policy;
 
+
 public:
   /// constructor
   Allocator();
@@ -44,7 +45,9 @@ public:
 
   template <typename SplineType> void destroy(SplineType *spline)
   {
-    einspline_free(spline->coefs);
+    if (spline->coefs_allocated) {
+      einspline_free(spline->coefs);
+    }
     free(spline);
   }
 
@@ -52,13 +55,13 @@ public:
   multi_UBspline_3d_s *allocateMultiBspline(Ugrid x_grid, Ugrid y_grid,
                                             Ugrid z_grid, BCtype_s xBC,
                                             BCtype_s yBC, BCtype_s zBC,
-                                            int num_splines);
+                                            int num_splines, bool alloc_coefs);
 
   /// allocate a double multi-bspline
   multi_UBspline_3d_d *allocateMultiBspline(Ugrid x_grid, Ugrid y_grid,
                                             Ugrid z_grid, BCtype_d xBC,
                                             BCtype_d yBC, BCtype_d zBC,
-                                            int num_splines);
+                                            int num_splines, bool alloc_coefs);
 
   /// allocate a single bspline
   UBspline_3d_s *allocateUBspline(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
@@ -76,7 +79,7 @@ public:
   template <typename T, typename ValT, typename IntT>
   typename bspline_traits<T, 3>::SplineType *
   createMultiBspline(T dummy, ValT &start, ValT &end, IntT &ng, bc_code bc,
-                     int num_splines);
+                     int num_splines, bool alloc_coefs);
 
   /** allocate a UBspline_3d_(s,d)
    * @tparam T datatype
@@ -110,13 +113,16 @@ public:
 template<typename T>
 void Allocator::setCoefficientsForOneOrbital(int i, Array<T,3> &coeff, typename bspline_traits<T,3>::SplineType *spline)
 {
+  //std::cout << "Coeffs " << i << std::endl;
   for (int ix = 0; ix < spline->x_grid.num + 3; ix++) {
     for (int iy = 0; iy < spline->y_grid.num + 3; iy++) {
       for (int iz = 0; iz < spline->z_grid.num + 3; iz++) {
         intptr_t xs = spline->x_stride;
         intptr_t ys = spline->y_stride;
         intptr_t zs = spline->z_stride;
-        spline->coefs[iz*zs + iy*ys + iz*zs + i] = coeff(ix,iy,iz);
+        int idx = ix*xs + iy*ys + iz*zs +i;
+        //std::cout << "coef << " << ix << " " << iy << " " << iz << "  " << idx << " " << coeff(ix,iy,iz) << std::endl;
+        spline->coefs[ix*xs + iy*ys + iz*zs + i] = coeff(ix,iy,iz);
       }
     }
   }
@@ -125,7 +131,7 @@ void Allocator::setCoefficientsForOneOrbital(int i, Array<T,3> &coeff, typename 
 template <typename T, typename ValT, typename IntT>
 typename bspline_traits<T, 3>::SplineType *
 Allocator::createMultiBspline(T dummy, ValT &start, ValT &end, IntT &ng,
-                              bc_code bc, int num_splines)
+                              bc_code bc, int num_splines, bool alloc_coefs)
 {
   Ugrid x_grid, y_grid, z_grid;
   typename bspline_traits<T, 3>::BCType xBC, yBC, zBC;
@@ -142,7 +148,7 @@ Allocator::createMultiBspline(T dummy, ValT &start, ValT &end, IntT &ng,
   yBC.lCode = yBC.rCode = bc;
   zBC.lCode = zBC.rCode = bc;
   return allocateMultiBspline(x_grid, y_grid, z_grid, xBC, yBC, zBC,
-                              num_splines);
+                              num_splines, alloc_coefs);
 }
 
 template <typename ValT, typename IntT, typename T>

@@ -39,9 +39,11 @@ int main(int argc, char **argv)
   lattice_b(1,1) = 1.0;
   lattice_b(2,2) = 1.0;
 
-  spo_main.set(nx, ny, nz, nspline, ntiles);
+  bool set_local_coefs = false;
+  spo_main.set(nx, ny, nz, nspline, ntiles, set_local_coefs);
   spo_main.Lattice.set(lattice_b);
-  spo_ref_main.set(nx, ny, nz, nspline, ntiles);
+  set_local_coefs = true;
+  spo_ref_main.set(nx, ny, nz, nspline, ntiles, set_local_coefs);
   spo_ref_main.Lattice.set(lattice_b);
 
   spo_type spo_copy(spo_main, 1, 0);

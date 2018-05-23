@@ -60,6 +60,7 @@ typedef struct
   BCtype_s xBC, yBC, zBC;
   int num_splines;
   size_t coefs_size;
+  bool coefs_allocated;
 } multi_UBspline_3d_s;
 
 ///////////////////////////
@@ -98,6 +99,7 @@ typedef struct
   BCtype_d xBC, yBC, zBC;
   int num_splines;
   size_t coefs_size;
+  bool coefs_allocated;
 } multi_UBspline_3d_d;
 
 //////////////////////////////

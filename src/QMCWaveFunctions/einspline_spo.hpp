@@ -119,6 +119,7 @@ struct einspline_spo
 
   // fix for general num_splines
   void set(int nx, int ny, int nz, int num_splines, int nblocks,
+           bool set_local_coefs,
            bool init_random = true)
   {
     nSplines         = num_splines;
@@ -128,6 +129,8 @@ struct einspline_spo
     lastBlock        = nBlocks;
     if (einsplines.empty())
     {
+      //global_coefs = new qmcpack::SplineCoefs<T>(nx+3, ny+3, nz+3, num_splines);
+      //coefs_local_buf = new T[4*(nz+3)*num_splines];
       Owner = true;
       TinyVector<int, 3> ng(nx, ny, nz);
       pos_type start(0);
@@ -135,17 +138,40 @@ struct einspline_spo
       einsplines.resize(nBlocks);
       RandomGenerator<T> myrandom(11);
       Array<T, 3> coef_data(nx+3, ny+3, nz+3);
+#ifdef USE_GLOBAL_ARRAYS
+      bool alloc_coefs = set_local_coefs;
+#else
+      bool alloc_coefs = true;
+#endif
       for (int i = 0; i < nBlocks; ++i)
       {
-        einsplines[i] = myAllocator.createMultiBspline(T(0), start, end, ng, PERIODIC, nSplinesPerBlock);
+        einsplines[i] = myAllocator.createMultiBspline(T(0), start, end, ng, PERIODIC, nSplinesPerBlock, alloc_coefs);
+#ifdef USE_GLOBAL_ARRAYS
+#ifdef USE_Z_PADDING
+        intptr_t zs = einsplines[i]->z_stride;
+#else
+        intptr_t zs = num_splines;
+#endif
+        global_coefs = new qmcpack::SplineCoefs<T>(nx+3, ny+3, nz+3, zs);
+        coefs_local_buf = new T[4*(nz+3)*zs];
+#endif
         if (init_random) {
           for (int j = 0; j < nSplinesPerBlock; ++j) {
             // Generate different coefficients for each orbital
             myrandom.generate_uniform(coef_data.data(), coef_data.size());
+#ifdef USE_GLOBAL_ARRAYS
+            global_coefs->writeCoefs(j, coef_data.data());
+            // also include this line when testing (running check_spo)
+            if (set_local_coefs){
+              myAllocator.setCoefficientsForOneOrbital(j, coef_data, einsplines[i]);
+            }
+#else
             myAllocator.setCoefficientsForOneOrbital(j, coef_data, einsplines[i]);
+#endif
           }
         }
       }
+      global_coefs->set();
     }
     resize();
   }

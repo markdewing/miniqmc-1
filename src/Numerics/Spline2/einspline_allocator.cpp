@@ -80,7 +80,7 @@ void einspline_free(void *aligned)
 multi_UBspline_3d_s *
 einspline_create_multi_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
                                      BCtype_s xBC, BCtype_s yBC, BCtype_s zBC,
-                                     int num_splines)
+                                     int num_splines, bool alloc_coefs)
 {
   // Create new spline
   multi_UBspline_3d_s *restrict spline = (multi_UBspline_3d_s *)malloc(sizeof(multi_UBspline_3d_s));
@@ -134,16 +134,21 @@ einspline_create_multi_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
   spline->z_stride = N;
 
   spline->coefs_size = (size_t)Nx * spline->x_stride;
-  spline->coefs =
-      (float *)einspline_alloc(sizeof(float) * spline->coefs_size, QMC_CLINE);
-  // printf("Einepline allocator %d %d %d %zd (%d)  %zu
-  // %d\n",Nx,Ny,Nz,N,num_splines,spline->coefs_size,QMC_CLINE);
-
-  if (!spline->coefs)
+  spline->coefs_allocated = false;
+  if (alloc_coefs)
   {
-    fprintf(stderr, "Out of memory allocating spline coefficients in "
-                    "create_multi_UBspline_3d_s.\n");
-    abort();
+    spline->coefs_allocated = true;
+    spline->coefs =
+        (float *)einspline_alloc(sizeof(float) * spline->coefs_size, QMC_CLINE);
+    // printf("Einepline allocator %d %d %d %zd (%d)  %zu
+    // %d\n",Nx,Ny,Nz,N,num_splines,spline->coefs_size,QMC_CLINE);
+
+    if (!spline->coefs)
+    {
+      fprintf(stderr, "Out of memory allocating spline coefficients in "
+                     "create_multi_UBspline_3d_s.\n");
+      abort();
+    }
   }
 
 #if 0
@@ -170,7 +175,7 @@ einspline_create_multi_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
 multi_UBspline_3d_d *
 einspline_create_multi_UBspline_3d_d(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
                                      BCtype_d xBC, BCtype_d yBC, BCtype_d zBC,
-                                     int num_splines)
+                                     int num_splines, bool alloc_coefs)
 {
   // Create new spline
   multi_UBspline_3d_d *restrict spline = (multi_UBspline_3d_d *)malloc(sizeof(multi_UBspline_3d_d));
@@ -227,14 +232,19 @@ einspline_create_multi_UBspline_3d_d(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
   spline->z_stride = N;
 
   spline->coefs_size = (size_t)Nx * spline->x_stride;
-  spline->coefs =
-      (double *)einspline_alloc(sizeof(double) * spline->coefs_size, QMC_CLINE);
-
-  if (!spline->coefs)
+  spline->coefs_allocated = false;
+  if (alloc_coefs)
   {
-    fprintf(stderr, "Out of memory allocating spline coefficients in "
-                    "create_multi_UBspline_3d_d.\n");
-    abort();
+    spline->coefs_allocated = true;
+    spline->coefs =
+        (double *)einspline_alloc(sizeof(double) * spline->coefs_size, QMC_CLINE);
+
+    if (!spline->coefs)
+    {
+      fprintf(stderr, "Out of memory allocating spline coefficients in "
+                      "create_multi_UBspline_3d_d.\n");
+      abort();
+    }
   }
 
   return spline;

@@ -24,7 +24,7 @@
 multi_UBspline_3d_s *
 einspline_create_multi_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
                                      BCtype_s xBC, BCtype_s yBC, BCtype_s zBC,
-                                     int num_splines);
+                                     int num_splines, bool alloc_coefs);
 
 UBspline_3d_s *einspline_create_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid,
                                               Ugrid z_grid, BCtype_s xBC,
@@ -33,7 +33,7 @@ UBspline_3d_s *einspline_create_UBspline_3d_s(Ugrid x_grid, Ugrid y_grid,
 multi_UBspline_3d_d *
 einspline_create_multi_UBspline_3d_d(Ugrid x_grid, Ugrid y_grid, Ugrid z_grid,
                                      BCtype_d xBC, BCtype_d yBC, BCtype_d zBC,
-                                     int num_splines);
+                                     int num_splines, bool alloc_coefs);
 
 UBspline_3d_d *einspline_create_UBspline_3d_d(Ugrid x_grid, Ugrid y_grid,
                                               Ugrid z_grid, BCtype_d xBC,
@@ -51,19 +51,19 @@ Allocator::~Allocator() {}
 multi_UBspline_3d_s *Allocator::allocateMultiBspline(Ugrid x_grid, Ugrid y_grid,
                                                      Ugrid z_grid, BCtype_s xBC,
                                                      BCtype_s yBC, BCtype_s zBC,
-                                                     int num_splines)
+                                                     int num_splines, bool alloc_coefs)
 {
   return einspline_create_multi_UBspline_3d_s(x_grid, y_grid, z_grid, xBC, yBC,
-                                              zBC, num_splines);
+                                              zBC, num_splines, alloc_coefs);
 }
 
 multi_UBspline_3d_d *Allocator::allocateMultiBspline(Ugrid x_grid, Ugrid y_grid,
                                                      Ugrid z_grid, BCtype_d xBC,
                                                      BCtype_d yBC, BCtype_d zBC,
-                                                     int num_splines)
+                                                     int num_splines, bool alloc_coefs)
 {
   return einspline_create_multi_UBspline_3d_d(x_grid, y_grid, z_grid, xBC, yBC,
-                                              zBC, num_splines);
+                                              zBC, num_splines, alloc_coefs);
 }
 
 UBspline_3d_d *Allocator::allocateUBspline(Ugrid x_grid, Ugrid y_grid,

@@ -24,10 +24,21 @@
 
 #include <iostream>
 #include <Numerics/Spline2/MultiBsplineData.hpp>
+#include <Utilities/SplineCoefs.hpp>
 #include <stdlib.h>
 
 namespace qmcplusplus
 {
+
+#ifdef USE_GLOBAL_ARRAYS
+qmcpack::SplineCoefs<OHMMS_PRECISION> *global_coefs = NULL;
+OHMMS_PRECISION *coefs_local_buf = NULL;
+// Whether the coefficients should be padded along the z-direction.
+// The normal code does this.  It's not clear if the GA code should do this.
+// If defined, the coefficients are aligned, but the extra padding gets communicated
+// If not defined, the coefficients may not be aligned, but there is no extra padding
+#define USE_Z_PADDING
+#endif
 
 template <typename T> struct MultiBspline
 {
@@ -77,7 +88,11 @@ inline void MultiBspline<T>::evaluate_v(const spliner_type *restrict spline_m,
 
   const intptr_t xs = spline_m->x_stride;
   const intptr_t ys = spline_m->y_stride;
+#if defined(USE_GLOBAL_ARRAYS) && !defined(USE_Z_PADDING)
+  const intptr_t zs = num_splines;
+#else
   const intptr_t zs = spline_m->z_stride;
+#endif
 
   CONSTEXPR T zero(0);
   ASSUME_ALIGNED(vals);
@@ -87,8 +102,13 @@ inline void MultiBspline<T>::evaluate_v(const spliner_type *restrict spline_m,
     for (size_t j = 0; j < 4; j++)
     {
       const T pre00 = a[i] * b[j];
+#ifdef USE_GLOBAL_ARRAYS
+      global_coefs->readZSlice(ix+i, iy+j, iz, iz+3, coefs_local_buf);
+      T* restrict coefs = coefs_local_buf;
+#else
       const T *restrict coefs =
           spline_m->coefs + ((ix + i) * xs + (iy + j) * ys + iz * zs);
+#endif
       ASSUME_ALIGNED(coefs);
       //#pragma omp simd
       for (size_t n = 0; n < num_splines; n++)
@@ -243,7 +263,11 @@ MultiBspline<T>::evaluate_vgh(const spliner_type *restrict spline_m,
 
   const intptr_t xs = spline_m->x_stride;
   const intptr_t ys = spline_m->y_stride;
+#if defined(USE_GLOBAL_ARRAYS) && !defined(USE_Z_PADDING)
+  const intptr_t zs = num_splines;
+#else
   const intptr_t zs = spline_m->z_stride;
+#endif
 
   const size_t out_offset = spline_m->num_splines;
 
@@ -282,8 +306,13 @@ MultiBspline<T>::evaluate_vgh(const spliner_type *restrict spline_m,
   for (int i = 0; i < 4; i++)
     for (int j = 0; j < 4; j++)
     {
+#ifdef USE_GLOBAL_ARRAYS
+      global_coefs->readZSlice(ix+i, iy+j, iz, iz+3, coefs_local_buf);
+      T* restrict coefs = coefs_local_buf;
+#else
       const T *restrict coefs =
           spline_m->coefs + ((ix + i) * xs + (iy + j) * ys + iz * zs);
+#endif
       ASSUME_ALIGNED(coefs);
       const T *restrict coefszs = coefs + zs;
       ASSUME_ALIGNED(coefszs);

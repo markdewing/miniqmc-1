@@ -322,7 +322,8 @@ int main(int argc, char **argv)
     app_summary() << "\nSPO coefficients size = " << SPO_coeff_size
                   << " bytes (" << SPO_coeff_size_MB << " MB)" << endl;
 
-    spo_main.set(nx, ny, nz, norb, nTiles);
+    bool set_local_coefs = false;
+    spo_main.set(nx, ny, nz, norb, nTiles, set_local_coefs);
     spo_main.Lattice.set(lattice_b);
   }
 
@@ -530,6 +531,7 @@ int main(int argc, char **argv)
   } // end of omp parallel
   Timers[Timer_Total]->stop();
 
+  global_coefs->set(); // Sync because there may be MPI calls following
   if (comm.root())
   {
     cout << "================================== " << endl;
@@ -564,5 +566,6 @@ int main(int argc, char **argv)
     doc.SaveFile(info_name.c_str());
   }
 
+  GA_Print_stats();
   return 0;
 }
