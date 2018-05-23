@@ -84,7 +84,7 @@ class SplineCoefs {
     GA_Set_data(p_GA,N,dims,p_type);
     GA_Set_chunk(p_GA, chunk);
     if (!GA_Allocate(p_GA)) {
-      GA_Error("Failure to allocate SplineCoefs array",0);
+      GA_Error(const_cast<char *>("Failure to allocate SplineCoefs array"),0);
     }
   }
 
@@ -141,7 +141,7 @@ class SplineCoefs {
     GA_Set_pgroup(p_GA,p_GAgrp);
     GA_Set_chunk(p_GA, chunk);
     if (!GA_Allocate(p_GA)) {
-      GA_Error("Failure to allocate SplineCoefs array",0);
+      GA_Error(const_cast<char *>("Failure to allocate SplineCoefs array"),0);
     }
   }
 
@@ -172,7 +172,7 @@ class SplineCoefs {
     hi[1] = p_ydim-1;
     hi[2] = p_zdim-1;
     hi[3] = n;
-    ld[0] = p_ydim;
+    ld[0] = p_xdim;
     ld[1] = p_ydim;
     ld[2] = 1;
     NGA_Put(p_GA,lo,hi,ptr,ld);
