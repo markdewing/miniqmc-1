@@ -154,6 +154,7 @@ struct einspline_spo
 #endif
         global_coefs = new qmcpack::SplineCoefs<T>(nx+3, ny+3, nz+3, zs);
         coefs_local_buf = new T[4*(nz+3)*zs];
+        CoefFetchTimer = TimerManager.createTimer("Coef Fetch", timer_level_fine);
 #endif
         if (init_random) {
           for (int j = 0; j < nSplinesPerBlock; ++j) {

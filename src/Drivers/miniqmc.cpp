@@ -271,7 +271,7 @@ int main(int argc, char **argv)
 
   Tensor<int, 3> tmat(na, 0, 0, 0, nb, 0, 0, 0, nc);
 
-  TimerManager.set_timer_threshold(timer_level_coarse);
+  TimerManager.set_timer_threshold(timer_level_fine);
   TimerList_t Timers;
   setup_timers(Timers, MiniQMCTimerNames, timer_level_coarse);
 

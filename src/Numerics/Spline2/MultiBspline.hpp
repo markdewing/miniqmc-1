@@ -25,6 +25,7 @@
 #include <iostream>
 #include <Numerics/Spline2/MultiBsplineData.hpp>
 #include <Utilities/SplineCoefs.hpp>
+#include <Utilities/NewTimer.h>
 #include <stdlib.h>
 
 namespace qmcplusplus
@@ -33,6 +34,7 @@ namespace qmcplusplus
 #ifdef USE_GLOBAL_ARRAYS
 qmcpack::SplineCoefs<OHMMS_PRECISION> *global_coefs = NULL;
 OHMMS_PRECISION *coefs_local_buf = NULL;
+NewTimer *CoefFetchTimer = NULL;
 // Whether the coefficients should be padded along the z-direction.
 // The normal code does this.  It's not clear if the GA code should do this.
 // If defined, the coefficients are aligned, but the extra padding gets communicated
@@ -103,7 +105,9 @@ inline void MultiBspline<T>::evaluate_v(const spliner_type *restrict spline_m,
     {
       const T pre00 = a[i] * b[j];
 #ifdef USE_GLOBAL_ARRAYS
+      CoefFetchTimer->start();
       global_coefs->readZSlice(ix+i, iy+j, iz, iz+3, coefs_local_buf);
+      CoefFetchTimer->stop();
       T* restrict coefs = coefs_local_buf;
 #else
       const T *restrict coefs =
@@ -307,7 +311,9 @@ MultiBspline<T>::evaluate_vgh(const spliner_type *restrict spline_m,
     for (int j = 0; j < 4; j++)
     {
 #ifdef USE_GLOBAL_ARRAYS
+      CoefFetchTimer->start();
       global_coefs->readZSlice(ix+i, iy+j, iz, iz+3, coefs_local_buf);
+      CoefFetchTimer->stop();
       T* restrict coefs = coefs_local_buf;
 #else
       const T *restrict coefs =
