@@ -34,6 +34,7 @@ namespace qmcplusplus
 #ifdef USE_GLOBAL_ARRAYS
 qmcpack::SplineCoefs<OHMMS_PRECISION> *global_coefs = NULL;
 OHMMS_PRECISION *coefs_local_buf = NULL;
+#pragma omp threadprivate(coefs_local_buf)
 NewTimer *CoefFetchTimer = NULL;
 // Whether the coefficients should be padded along the z-direction.
 // The normal code does this.  It's not clear if the GA code should do this.
