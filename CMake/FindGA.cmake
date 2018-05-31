@@ -50,7 +50,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #=============================================================================
 
-find_path(GA_INCLUDE_DIR ga++.h
+find_path(GA_INCLUDE_DIR ga.h
   HINTS ${GA_INCLUDE_DIR} ENV GA_INCLUDE_DIR ${GA_DIR} ENV GA_DIR
   PATH_SUFFIXES include
   DOC "Directory where the GA header files are located"
@@ -65,13 +65,13 @@ find_library(GA_LIBRARY
 )
 message(STATUS "GA_LIBRARY: ${GA_LIBRARY}")
 
-find_library(GA_CXX_LIBRARY
-  NAMES ga++ GA${GA_LIB_SUFFIX}
-  HINTS ${GA_LIB_DIR} ENV GA_LIB_DIR ${GA_DIR} ENV GA_DIR
-  PATH_SUFFIXES lib
-  DOC "Directory where the GA library is located"
-)
-message(STATUS "GA_CXX_LIBRARY: ${GA_CXX_LIBRARY}")
+#find_library(GA_CXX_LIBRARY
+#  NAMES ga++ GA${GA_LIB_SUFFIX}
+#  HINTS ${GA_LIB_DIR} ENV GA_LIB_DIR ${GA_DIR} ENV GA_DIR
+#  PATH_SUFFIXES lib
+#  DOC "Directory where the GA library is located"
+#)
+#message(STATUS "GA_CXX_LIBRARY: ${GA_CXX_LIBRARY}")
 
 find_library(ARMCI_LIBRARY
   NAMES armci GA${ARMCI_LIB_SUFFIX}
@@ -107,11 +107,11 @@ if (GA_INCLUDE_DIR AND GA_LIBRARY AND ARMCI_LIBRARY)
   set(CMAKE_REQUIRED_INCLUDES ${GA_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
   if (NOT MPI_LIBRARY OR NOT MPI_EXTRA_LIBRARY)
     set(CMAKE_REQUIRED_LIBRARIES
-      ${GA_CXX_LIBRARY} ${GA_LIBRARY} ${ARMCI_LIBRARY} ${GA_EXTRA_LIBS}
+      ${GA_LIBRARY} ${ARMCI_LIBRARY} ${GA_EXTRA_LIBS}
     )
   else()
     set(CMAKE_REQUIRED_LIBRARIES
-      ${GA_CXX_LIBRARY} ${GA_LIBRARY} ${ARMCI_LIBRARY} ${GA_EXTRA_LIBS}
+      ${GA_LIBRARY} ${ARMCI_LIBRARY} ${GA_EXTRA_LIBS}
         ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${MPI_LIBRARIES}
     )
   endif()
@@ -165,7 +165,7 @@ else()
 endif()
 
 if(GA_FOUND)
-  set(GA_LIBRARIES ${GA_CXX_LIBRARY} ${GA_LIBRARY} ${ARMCI_LIBRARY} ${GA_EXTRA_LIBS})
+  set(GA_LIBRARIES ${GA_LIBRARY} ${ARMCI_LIBRARY} ${GA_EXTRA_LIBS})
   set(GA_INCLUDE_DIRS ${GA_INCLUDE_DIR})
 endif()
 
