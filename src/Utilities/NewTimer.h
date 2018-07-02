@@ -225,6 +225,15 @@ public:
 // N = 2 gives 16 nesting levels
 typedef StackKeyParam<2> StackKey;
 
+struct EventRecord
+{
+  double timestamp;
+  timer_id_t timer_id;
+  char event_type;
+
+  EventRecord(double ts, timer_id_t id, char type) : timestamp(ts), timer_id(id), event_type(type) {}
+};
+
 class TimerManagerClass
 {
 protected:
@@ -236,6 +245,8 @@ protected:
   std::map<timer_id_t, std::string> timer_id_name;
   std::map<std::string, timer_id_t> timer_name_to_id;
 
+  std::vector<EventRecord> events;
+
 public:
 #ifdef USE_VTUNE_TASKS
   __itt_domain *task_domain;
@@ -245,6 +256,7 @@ public:
       : timer_threshold(timer_level_coarse), max_timer_id(1),
         max_timers_exceeded(false)
   {
+    events.reserve(10000);
 #ifdef USE_VTUNE_TASKS
     task_domain = __itt_domain_create("QMCPACK");
 #endif
@@ -285,6 +297,12 @@ public:
   void print();
   void print_flat();
   void print_stack();
+
+  void put_event(double timestamp, timer_id_t timer_id, char event_type)
+  {
+    events.push_back(EventRecord(timestamp, timer_id, event_type));
+  }
+  void output_events();
 
   XMLNode* output_timing(XMLDocument &doc);
 
@@ -387,6 +405,7 @@ public:
           manager->push_timer(this);
         }
         start_time = cpu_clock();
+        manager->put_event(start_time, timer_id, 'B');
       }
 #else
       start_time = cpu_clock();
@@ -407,7 +426,9 @@ public:
 #pragma omp master
 #endif
       {
-        double elapsed = cpu_clock() - start_time;
+        double now = cpu_clock();
+        double elapsed = now - start_time;
+        manager->put_event(now, timer_id, 'E');
         total_time += elapsed;
         num_calls++;
 

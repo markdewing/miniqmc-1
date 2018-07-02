@@ -546,8 +546,7 @@ int main(int argc, char **argv)
     XMLNode *timing = TimerManager.output_timing(doc);
     resources->InsertEndChild(timing);
 
-    XMLNode *particle_info = doc.NewElement("particles");
-    resources->InsertEndChild(particle_info);
+    XMLNode *particle_info = doc.NewElement("particles"); resources->InsertEndChild(particle_info);
     XMLNode *electron_info = doc.NewElement("particle");
     electron_info->InsertEndChild(MakeTextElement(doc,"name","e"));
     electron_info->InsertEndChild(MakeTextElement(doc,"size",std::to_string(number_of_electrons)));
@@ -564,6 +563,7 @@ int main(int argc, char **argv)
 
     std::string info_name = "info_" + std::to_string(na) + "_" + std::to_string(nb) + "_" + std::to_string(nc) + ".xml";
     doc.SaveFile(info_name.c_str());
+    TimerManager.output_events();
   }
 
   GA_Print_stats();
