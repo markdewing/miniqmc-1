@@ -13,6 +13,11 @@ ADD_LIBRARY(miniwfs ../QMCWaveFunctions/WaveFunction.cpp)
 ADD_EXECUTABLE(miniqmc miniqmc.cpp)
 TARGET_LINK_LIBRARIES(miniqmc miniwfs qmcbase qmcutil ${QMC_UTIL_LIBS} ${MPI_LIBRARY})
 
+ADD_EXECUTABLE(unit_test ../Particle/test/test_bconds.cpp)
+TARGET_LINK_LIBRARIES(unit_test miniwfs qmcbase qmcutil ${QMC_UTIL_LIBS} ${MPI_LIBRARY})
+ADD_TEST(NAME unit_test COMMAND unit_test)
+SET_TESTS_PROPERTIES(unit_test PROPERTIES LABELS "unit")
+
 endif()
 
 #SET(boost_test exchange_walker)
