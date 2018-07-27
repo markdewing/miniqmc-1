@@ -109,6 +109,12 @@ int main(int argc, char **argv)
 
   int nrepeat = 100;
 
+  int coef_bytes_loaded = nspline * 64 * sizeof(double);
+  // Ops numbers from hand-counting.
+  int vgl_adds = 3 + 12*3*3 + ((3*3 + 7)*nspline + 6)*16 + nspline*2;
+  int vgl_muls = 12*3*3 + ((4*3 + 7)*nspline)*16 + 3 + nspline*6;
+  int vgl_flop = vgl_adds + vgl_muls;
+
   double ref_start = cpu_clock();
   for (int i = 0; i < nrepeat; i++) {
     //spline_ref.evaluate_v(&spline_data, pos[0], pos[1], pos[2], psi_ref.data(), nspline);
@@ -119,7 +125,14 @@ int main(int argc, char **argv)
 
   std::cout << "ref spo psi[0] = " << psi_ref[0] << std::endl;
   std::cout << "ref spo psi[1] = " << psi_ref[1] << std::endl;
-  std::cout << " ref time = " << (ref_end - ref_start)/nrepeat << std::endl;
+  double ref_time = (ref_end - ref_start)/nrepeat;
+  std::cout << " ref time = " << ref_time << std::endl;
+  double coef_bw = coef_bytes_loaded / ref_time;
+  std::cout << " ref coef BW = " << coef_bw/1.0e9 << " (GB/s)" << std::endl;
+  std::cout << " ref splines / sec = " << nspline/ref_time << std::endl;
+  std::cout << " ref GFLOPS = " << vgl_flop/ref_time/1.0e9 << std::endl;
+
+  std::cout << std::endl;
 
 
   MultiBspline<double> spline_new;
@@ -132,7 +145,12 @@ int main(int argc, char **argv)
 
   std::cout << "new spo psi[0] = " << psi[0] << std::endl;
   std::cout << "new spo psi[1] = " << psi[1] << std::endl;
-  std::cout << " time = " << (end - start)/nrepeat << std::endl;
+  double new_time =  (end - start)/nrepeat;
+  std::cout << " time = " << new_time << std::endl;
+  double new_coef_bw = coef_bytes_loaded / new_time;
+  std::cout << " coef BW = " << new_coef_bw/1.0e9 << " (GB/s)" << std::endl;
+  std::cout << " splines / sec = " << nspline/new_time << std::endl;
+  std::cout << " GFLOPS = " << vgl_flop/new_time/1.0e9 << std::endl;
 
 
 #ifdef HAVE_MPI
